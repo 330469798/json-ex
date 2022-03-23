@@ -1,5 +1,5 @@
 {
-  "name": "json-extend",
+  "name": "json-fn-ex",
   "version": "1.0.0",
   "description": "json拓展方法",
   "main": "index.js",
@@ -10,15 +10,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/330469798/json-extend.git"
+    "url": "git+https://github.com/330469798/json-fn-ex.git"
   },
   "author": "myy",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/330469798/json-extend/issues"
+    "url": "https://github.com/330469798/json-fn-ex/issues"
   },
-  "homepage": "https://github.com/330469798/json-extend#readme",
-  "dependencies": {
-    "open": "^8.4.0"
-  }
+  "homepage": "https://github.com/330469798/json-fn-ex#readme"
 }
