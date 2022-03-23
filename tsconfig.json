@@ -1,0 +1,19 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "./dist/types",
+    "target": "es5",
+    "typeRoots": ["node_modules/@types", "src/@types"],
+    "lib": ["es2015", "dom"]
+  },
+  "include": ["src/**/*.ts"]
+}

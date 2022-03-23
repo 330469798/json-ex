@@ -1,0 +1,24 @@
+{
+  "name": "json-extend",
+  "version": "1.0.0",
+  "description": "json拓展方法",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/330469798/json-extend.git"
+  },
+  "author": "myy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/330469798/json-extend/issues"
+  },
+  "homepage": "https://github.com/330469798/json-extend#readme",
+  "dependencies": {
+    "open": "^8.4.0"
+  }
+}
