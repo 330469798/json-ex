@@ -1,3 +1,5 @@
+import { deepClone } from "."
+
 interface toTreeOption {
     //父节点主键字段名
     parentIdField?: string,
@@ -73,4 +75,55 @@ export function toTree(
     if (!nodesArr.length) console.warn(`toTree方法未找到根节点`)
 
     return dp(nodesArr)
+}
+
+interface findNodesByKeyOption {
+    nameField?: string,
+    childrenField?: string
+}
+
+export function findNodesByKey(list: any[], key, option?: findNodesByKeyOption) {
+    const defaultOption = {
+        nameField: `title`,
+        childrenField: `children`,
+    }
+
+    option = { ...defaultOption, ...option }
+    const { nameField, childrenField } = option as any
+
+    //深拷贝防止改变源数据
+    list = deepClone(list)
+
+    const dp = (layerList) => {
+        return layerList.filter(item => {
+            const children = item[childrenField] && dp(item[childrenField])
+            item[childrenField] = children?.length ? children : undefined;
+            return children?.length || item[nameField].includes(key)
+        })
+    }
+
+    return dp(list)
+}
+
+interface findNodesByKeyOption {
+    nameField?: string,
+    childrenField?: string
+}
+
+export function isTreeNode(list: any[], key, option?: findNodesByKeyOption) {
+    const defaultOption = {
+        idField: `key`,
+        childrenField: `children`,
+    }
+
+    option = { ...defaultOption, ...option }
+    const { idField, childrenField } = option as any
+
+    const dp = (layerList) => {
+        return !!layerList.find(item => {
+            return item[idField] === key || (item[childrenField] && dp(item[childrenField]))
+        })
+    }
+
+    return dp(list)
 }

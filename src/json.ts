@@ -1,3 +1,5 @@
+import produce from "immer"
+
 interface groupByNamesOption {
     // 自定义分组后非叶子结点数据结构
     resFn?: (key: string | string[], value: any, layer: number) => {},
@@ -201,5 +203,46 @@ export function treeLayerValidate(
 
     dp(rootNode)
     return errorMsg;
+}
+
+
+interface uniqueJsonByKeyOption {
+    //reserve为从尾部去重
+    mode?: string
+
+    keyField?: string
+}
+
+export function uniqueJsonByKey(list: any[], option?: uniqueJsonByKeyOption) {
+    const defaultOption = {
+        mode: "default",
+        keyField: `key`
+    }
+
+    option = { ...defaultOption, ...option }
+    const { mode, keyField } = option as any
+    list = deepClone(list)
+
+    const filter = (list) => {
+        const map = new Map();
+        const outputArr: any[] = []
+        list.forEach(item => {
+            const o = map.get(item[keyField])
+            !o && (
+                map.set(item[keyField], item),
+                outputArr.push(item)
+            )
+        })
+
+        return outputArr
+    }
+
+    return mode === `reverse` ? filter(list.reverse()).reverse() : filter(list)
+}
+
+
+
+export function deepClone(list, fn?: Function): any {
+    return produce(list, (draft) => { return fn ? fn(draft) : draft })
 }
 

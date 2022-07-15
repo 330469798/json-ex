@@ -1,2 +1,2 @@
-export * from "./json.func"
-export * from "./tree.func"
+export * from "./json"
+export * from "./tree"
