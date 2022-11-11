@@ -4,3 +4,4 @@ tsconfig.json
 server.js
 demo
 node_modules
+dist

@@ -1,4 +1,8 @@
-import produce from "immer"
+import { Heap } from "./heap"
+
+export const getItemByValue = (list, value, valueField = `value`) => {
+    return list.find(item => item[valueField] === value) ?? {}
+}
 
 interface groupByNamesOption {
     // 自定义分组后非叶子结点数据结构
@@ -34,7 +38,7 @@ export function groupByNames(
                 children: value,
             }
         },
-        isDeleteKey: true,
+        isDeleteKey: false,
         defaultValue: null,
         leafResFn: (data: any) => {
             return data
@@ -42,7 +46,7 @@ export function groupByNames(
         isSkipCheck: false
     }
     option = { ...defaultOption, ...option };
-    const { resFn, defaultValue, isDeleteKey, leafResFn, isSkipCheck } = option as groupByNamesOption
+    const { resFn, defaultValue, isDeleteKey, leafResFn, isSkipCheck } = option as any
 
     // 递归指针
     let i: number = 0;
@@ -104,8 +108,8 @@ export function groupByNames(
 
 // 数据合并
 export function jsonMerge(
-    a: { [key: string]: any }[],//被合入数据
-    b: { [key: string]: any }[],//合入数据,若有相同字段b会覆盖a
+    a: { [key: string]: any }[] = [],//被合入数据
+    b: { [key: string]: any }[] = [],//合入数据,若有相同字段b会覆盖a
     aname: string,//a的aname与b的bname字段匹配
     bname?: string,//默认值为aname
 ): { [key: string]: any }[] {
@@ -128,6 +132,29 @@ export function jsonMergebyField(
     field: string | string[],
     bname?: string,//默认值为aname
 ): { [key: string]: any }[] {
+    const mergeFn = (a, b) => {
+        if (!Array.isArray(field)) {
+            if (b?.[field as string]) a[field as string] = b?.[field as string];
+        }
+        else {
+            (field as string[]).forEach((f: string) => {
+                if (b?.[f]) a[f] = b?.[f];
+            })
+        };
+        return a;
+    }
+
+    return jsonMergebyFn(a, b, aname, mergeFn, bname)
+}
+
+// 自定义的数据合并
+export function jsonMergebyFn(
+    a: { [key: string]: any }[] = [],//被合入数据
+    b: { [key: string]: any }[] = [],//合入数据,若有相同字段b会覆盖a
+    aname: string,//a的aname与b的bname字段匹配
+    mergeFn: (a, b) => any,
+    bname?: string,//默认值为aname
+): { [key: string]: any }[] {
     const bn: string = bname ?? aname
     const map = new Map();
     b.forEach((item: { [key: string]: any }) => {
@@ -135,101 +162,38 @@ export function jsonMergebyField(
     })
 
     return a.map((item: { [key: string]: any }) => {
-        const d = map.get(item[aname])
-        if (!Array.isArray(field)) {
-            if (d?.[field as string]) item[field as string] = d?.[field as string];
-        }
-        else {
-            (field as string[]).forEach((f: string) => {
-                if (d?.[f]) item[f] = d?.[f];
-            })
-        };
-        return item;
+        return mergeFn(item, map.get(item[aname]))
     })
 }
-
-interface treeLayerValidateOption {
-    //父节点主键字段名
-    parentIdField?: string,
-    // 节点主键字段名
-    idField?: string,
-    //校验方法
-    validateFn?: Function
-    // 校验错误提示
-    errorMsgFn?: Function,
-    //根节点id
-    rootId?: number | string,
-}
-//树型json数据的层级校验
-export function treeLayerValidate(
-    data: any[],
-    option: treeLayerValidateOption
-) {
-    // 默认配置
-    const defaultOption = {
-        parentIdField: "parentId",
-        idField: `id`,
-        validateFn: (data: any) => {
-            return true
-        },
-        errorMsgFn: (data: any) => {
-            return `error`
-        },
-        rootId: `0`
-    }
-
-    option = { ...defaultOption, ...option }
-    const { parentIdField, idField, validateFn, errorMsgFn, rootId } = option as treeLayerValidateOption
-
-    const map = new Map();
-    data.forEach((item, i) => {
-        if (item[parentIdField]) {
-            const o = map.get(item[parentIdField])
-
-            o
-                ? o.push(item)
-                : map.set(item[parentIdField], [item])
-        }
-    })
-    const rootNode = data.find(item => item[idField] === rootId) ?? data[0]
-    const errorMsg: any[] = []
-    const dp = (node: any) => {
-        const children = map.get(node[idField])
-        if (children) {
-            if (!validateFn(children)) errorMsg.push(errorMsgFn(children))
-            children.forEach((item: any) => dp(item))
-        }
-    }
-
-    dp(rootNode)
-    return errorMsg;
-}
-
 
 interface uniqueJsonByKeyOption {
-    //reserve为从尾部去重
+    //default优先保留头部 reserve优先保留尾部
     mode?: string
 
     keyField?: string
+
+    getKey?: (item) => String
 }
 
 export function uniqueJsonByKey(list: any[], option?: uniqueJsonByKeyOption) {
     const defaultOption = {
         mode: "default",
-        keyField: `key`
+        keyField: `key`,
+        getKey: (item) => {
+            return item?.[option.keyField ?? `key`]
+        }
     }
 
     option = { ...defaultOption, ...option }
-    const { mode, keyField } = option as any
-    list = deepClone(list)
+    const { mode, getKey } = option as any
 
     const filter = (list) => {
         const map = new Map();
         const outputArr: any[] = []
         list.forEach(item => {
-            const o = map.get(item[keyField])
+            const o = map.get(getKey(item))
             !o && (
-                map.set(item[keyField], item),
+                map.set(getKey(item), item),
                 outputArr.push(item)
             )
         })
@@ -240,9 +204,42 @@ export function uniqueJsonByKey(list: any[], option?: uniqueJsonByKeyOption) {
     return mode === `reverse` ? filter(list.reverse()).reverse() : filter(list)
 }
 
+export function deepClone(list: { [key: string]: any }[] | { [key: string]: any }) {
+    const getCloneObj = (item: any) => {
+        return typeof item === `object` ? deepClone(item) : item
+    }
+    // console.log(list)
+    // console.log(typeof list)
 
-
-export function deepClone(list, fn?: Function): any {
-    return produce(list, (draft) => { return fn ? fn(draft) : draft })
+    if (Array.isArray(list))
+        return list.map(item => getCloneObj(item))
+    else if (list instanceof Map) {
+        return new Map([...list].map(item => {
+            item[1] = getCloneObj(item[1])
+            return item;
+        }))
+    }
+    else if (list instanceof Set) {
+        return new Set([...list])
+    }
+    else {
+        const allKeys = Reflect.ownKeys(list);
+        return allKeys.reduce((a, b) => {
+            return {
+                ...a,
+                [b]: getCloneObj(Reflect.get(list, b))
+            }
+        }, {});
+    }
 }
 
+export function getTopN(list, compare: Function, n: number) {
+    const heap = Heap.heapify(list, compare)
+    const size = heap.size
+    const result = [];
+
+    for (let i = 0; i < Math.min(n, size); i++) {
+        result.push(heap.pop())
+    }
+    return result
+}

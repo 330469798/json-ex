@@ -1,26 +1,18 @@
 {
-  "name": "json-fn-ex",
-  "version": "1.1.0",
-  "description": "json拓展方法",
-  "main": "dist/types/index.d.ts",
+  "name": "myy-common-fn",
+  "version": "1.0.0",
+  "description": "通用方法",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "watch": "tsc -w",
     "start": "node server.js"
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/330469798/json-fn-ex.git"
+    "type": "git"
   },
   "author": "myy",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/330469798/json-fn-ex/issues"
-  },
-  "homepage": "https://github.com/330469798/json-fn-ex#readme",
-  "dependencies": {
-    "immer": "^9.0.15",
-    "open": "^8.4.0"
-  }
+  "devDependencies": {}
 }

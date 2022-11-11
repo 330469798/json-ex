@@ -1,32 +1,37 @@
-import { deepClone } from "."
+import { deepClone } from "./json"
 
-interface toTreeOption {
+interface TreeOption {
+    idField?: string
+    nameField?: string,
+    //子节点主键字段名
+    childrenField?: string
     //父节点主键字段名
     parentIdField?: string,
-    // 节点主键字段名
-    idField?: string,
     // 根节点id
-    rootId?: string | number,
-    // 递归字段
-    dpName?: string,
+    rootId: string | number,
+}
+
+interface toTreeOption extends TreeOption {
+    //父节点主键字段名
+    parentIdField: string,
     //自定义叶子结点数据类型
-    leafResFn?: Function,
+    leafResFn: Function,
     //自定义所有结点的数据类型
-    resFn?: Function
+    resFn: Function
 }
 
 
 export function toTree(
     arr: any[],//数据
-    option: toTreeOption//配置
-): { [key: string]: any } {
+    option?: { [key: string]: any }//配置
+): { [key: string]: any }[] {
 
     //默认配置
     option = {
         parentIdField: "parentId",
         idField: `id`,
         rootId: `0`,
-        dpName: `children`,
+        childrenField: `children`,
         leafResFn: (data: any, layer: number) => {
             return {
                 ...data,
@@ -42,7 +47,7 @@ export function toTree(
         ...option
     }
 
-    const { parentIdField, idField, rootId, dpName, leafResFn, resFn } = option as toTreeOption
+    const { parentIdField, idField, rootId, childrenField, leafResFn, resFn } = option as toTreeOption
 
     //id=>childrenList
     const childrenMap = new Map();
@@ -61,7 +66,7 @@ export function toTree(
             const children = childrenMap.get(item[idField]);
             if (children) {
                 layer++
-                item[dpName] = dp(children);
+                item[childrenField] = dp(children);
                 layer--
             }
             // 生成叶子结点
@@ -72,17 +77,18 @@ export function toTree(
     }
 
     const nodesArr = arr.filter((item: any) => item[parentIdField] === rootId)
-    if (!nodesArr.length) console.warn(`toTree方法未找到根节点`)
-
     return dp(nodesArr)
 }
 
-interface findNodesByKeyOption {
-    nameField?: string,
-    childrenField?: string
+interface FindNodesByKeyOption extends TreeOption {
+
 }
 
-export function findNodesByKey(list: any[], key, option?: findNodesByKeyOption) {
+export function findNodesByKey(list: any[], key, option?: FindNodesByKeyOption) {
+    //深拷贝防止改变源数据
+    list = deepClone(list)
+    if (!key) return list;
+
     const defaultOption = {
         nameField: `title`,
         childrenField: `children`,
@@ -90,9 +96,6 @@ export function findNodesByKey(list: any[], key, option?: findNodesByKeyOption) 
 
     option = { ...defaultOption, ...option }
     const { nameField, childrenField } = option as any
-
-    //深拷贝防止改变源数据
-    list = deepClone(list)
 
     const dp = (layerList) => {
         return layerList.filter(item => {
@@ -105,12 +108,11 @@ export function findNodesByKey(list: any[], key, option?: findNodesByKeyOption) 
     return dp(list)
 }
 
-interface findNodesByKeyOption {
-    nameField?: string,
-    childrenField?: string
+interface IsTreeNodeOption extends TreeOption {
+
 }
 
-export function isTreeNode(list: any[], key, option?: findNodesByKeyOption) {
+export function isTreeNode(list: any[], key, option?: IsTreeNodeOption) {
     const defaultOption = {
         idField: `key`,
         childrenField: `children`,

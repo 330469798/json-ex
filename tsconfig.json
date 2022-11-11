@@ -10,9 +10,9 @@
     "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
-    "declarationDir": "./dist/types",
+    "declarationDir": "./dist",
     "target": "es5",
-    "typeRoots": ["node_modules/@types", "src/@types"],
+    "typeRoots": ["node_modules/@types", "@types"],
     "lib": ["es2015", "dom"]
   },
   "include": ["src/**/*.ts"]
